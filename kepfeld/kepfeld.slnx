@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="kepfeld.vcxproj" />
+  <Project Path="kepfeld.vcxproj" Id="cfbfce06-a0bb-4efa-b96b-43e33ed47699" />
 </Solution>
