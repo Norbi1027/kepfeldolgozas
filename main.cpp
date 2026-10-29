@@ -119,6 +119,27 @@ float find_th(const Mat img, float fg_ratio = 0.1f) {
 
 }
 
+void collectPoints(const Mat img,vector<Point>& pts){
+	pts.clear();
+	for (int i = 0; i < img.rows; i++){
+		for (int j = 0; j < img.cols; j++){
+			if (img.at<uchar>(i, j)) {
+				pts.push_back(Point(j, i)); //!!!!!!!!!!!!!!!!
+			}
+		}
+	}
+}
+
+void drawPoints(const Mat img, vector<Point>& pts,Mat& dest) {
+	dest = img.clone();
+	for (Point p:pts){
+		drawMarker(dest, p, Scalar(0, 255, 0), MARKER_SQUARE, 10, 2);
+	}
+}
+
+
+
+
 /*
 for (int i = 0; i < img.rows; ++i) {
 	for (int j = 0; j < img.cols;++j) {
@@ -131,6 +152,7 @@ for (int i = 0; i < img.rows; ++i) {
 */
 
 int main() {
+
 
 	// MÁSODIK ÓRA
 
@@ -307,8 +329,6 @@ int main() {
 
 
 	// NEGYEEDIK ÓRA
-
-
 	/*
 		Mat elab, img, lab;
 		Mat etalon = imread("etalon.png", IMREAD_COLOR);
@@ -437,7 +457,9 @@ int main() {
 		}
 	*/
 
+	//7. ÓRA
 
+/*
 	Mat img = imread("szitakoto.jpg", IMREAD_GRAYSCALE);
 	imshow("img", img);
 	Mat mask;
@@ -464,7 +486,22 @@ int main() {
 
 	}
 
+	*/
 
+
+
+	Mat img = imread("annoltalt_sejt.png", IMREAD_COLOR);
+	vector<Mat> chs;
+	split(img, chs);
+	Mat mask, dest;
+	threshold(chs[2], mask, 250, 255, THRESH_BINARY);
+	Mat mask2;
+	Mat se = getStructuringElement(MORPH_CROSS, Size(3, 3));
+	morphologyEx(mask, mask2, MORPH_HITMISS, se);
+	vector<Point> pts;
+	collectPoints(mask2, pts); //mask2 !!!!!!!!
+	drawPoints(img, pts, dest);
+	imshow("dest", dest);
 
 
 
