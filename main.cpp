@@ -4,9 +4,27 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/geometry.hpp>
 #include "histo.h"
+#include "main.h"
 
 using namespace std;
 using namespace cv;
+//6.ora?xd
+void createHisto(const Mat img, Mat& hiszto) {
+	//a hiszto az eredmeny, float típusú elemeket tartalmaz majd
+	vector<Mat> kepek;
+	kepek.push_back(img); // egy képet használunk
+	vector<int> csatornak;
+	csatornak.push_back(0); //a képnek a 0. csatornáját használjuk
+	vector<int> hiszto_meretek;
+	hiszto_meretek.push_back(256);  //szürkeárnyalatok száma
+	vector<float> hiszto_tartomanyok;
+	hiszto_tartomanyok.push_back(0.0f); //hol kezdődik a tartomány
+	hiszto_tartomanyok.push_back(255.f);  //meddig tart
+	//accumlate: marad false (nullázza a hisztogrammot)
+	calcHist(kepek, csatornak, noArray(), hiszto, hiszto_meretek,
+		hiszto_tartomanyok, false);
+}
+
 
 void fakit(Mat img) {
 	img += 100;
@@ -82,20 +100,35 @@ float differ(const Mat elab, const Mat lab) {
 	vector<Mat> chs;
 	split(diff2, chs); //dL^2 da^2 db^2
 	Mat E;
-	cv::sqrt(chs[0] + chs[1]+ chs[2], E);
+	cv::sqrt(chs[0] + chs[1] + chs[2], E);
 	return mean(E)[0];
 }
+//6.ora?
+float find_th(const Mat img, float fg_ratio = 0.1f) {
+	Mat histo;
+	createHisto(img, histo);
+	int n_pixels = img.cols * img.rows * fg_ratio;
+	double d = 0;
+	for (int i = 0; i < histo.rows * histo.cols; ++i) {
+		d += histo.at<float>(i);
+		if (d >= n_pixels) {
+			return i;
 
-	/*
-	for (int i = 0; i < img.rows; ++i) {
-		for (int j = 0; j < img.cols;++j) {
-			Vec3b c = hsv.at<Vec3b>(i, j); //c[0] - h, c[1] - s, c[2] -v
-			if (c[0] <30) {
-				dest.at<Vec3b>(i, j) = img.at<Vec3b>(i,j);
-			}
 		}
 	}
-	*/
+
+}
+
+/*
+for (int i = 0; i < img.rows; ++i) {
+	for (int j = 0; j < img.cols;++j) {
+		Vec3b c = hsv.at<Vec3b>(i, j); //c[0] - h, c[1] - s, c[2] -v
+		if (c[0] <30) {
+			dest.at<Vec3b>(i, j) = img.at<Vec3b>(i,j);
+		}
+	}
+}
+*/
 
 int main() {
 
@@ -116,7 +149,7 @@ int main() {
 	string winname = "eredmény";
 	imshow(winname, fg);
 	createTrackbar("alfa", winname, &value, 100);
-	
+
 	while (waitKey(1) != 'q') {
 		double a = value / 100.0;
 		Mat res = a * fg + (1 - a) * bg;
@@ -134,14 +167,14 @@ int main() {
 	}
 
 	int cut = 50;
-	Rect r(	cut, 
+	Rect r(	cut,
 			cut,
 			fg.cols-2*cut,
 			fg.rows-2*cut);
 	Mat small = fg(r);
 	imwrite("eredmeny.png", small);
 
-	
+
 	//waitKey();
 	*/
 
@@ -188,7 +221,7 @@ int main() {
 	imshow("kozep", mid);
 	imshow("kep1", fg);
 
-	
+
 
 	Mat  kep = imread("kep.jpg", IMREAD_COLOR);
 	Mat bg = imread("background.jpg", IMREAD_COLOR);
@@ -217,7 +250,7 @@ int main() {
 	*/
 
 	//HARMADIK ÓRA
-	
+
 /*
 	Mat_<Vec3b>  kep = imread("kep.jpg", IMREAD_COLOR);
 	Mat_<Vec3b> bg = imread("background.jpg", IMREAD_COLOR);
@@ -260,7 +293,7 @@ int main() {
 	mormotaMasolo(img, dest);
 	imshow("eredmeny", dest);
 	*/
-	
+
 	/*
 	Mat lab;
 	Mat dest = imread("DEIK.jpg", IMREAD_COLOR);
@@ -271,43 +304,171 @@ int main() {
 	cout << cv::norm(c1 - c2) << endl;
 
 	*/
-	
-	
-// NEGYEEDIK ÓRA
 
 
-/*
-	Mat elab, img, lab;	
-	Mat etalon = imread("etalon.png", IMREAD_COLOR);
-	imshow("etalon", etalon);
-	convert(etalon, elab);
-	for (int i=0; i <=7;++i)
-	{
-		img = imread("fa_" + to_string(i) + ".png", IMREAD_COLOR);
-		convert(img, lab);
-		cout << differ(elab, lab) << endl;
-		string wname = "fa_" + to_string(i);
-		imshow(wname, img);
-		moveWindow(wname, 500, 50 + i * (img.rows + 20));
+	// NEGYEEDIK ÓRA
+
+
+	/*
+		Mat elab, img, lab;
+		Mat etalon = imread("etalon.png", IMREAD_COLOR);
+		imshow("etalon", etalon);
+		convert(etalon, elab);
+		for (int i=0; i <=7;++i)
+		{
+			img = imread("fa_" + to_string(i) + ".png", IMREAD_COLOR);
+			convert(img, lab);
+			cout << differ(elab, lab) << endl;
+			string wname = "fa_" + to_string(i);
+			imshow(wname, img);
+			moveWindow(wname, 500, 50 + i * (img.rows + 20));
+		}
+
+		*/
+		/*
+		Mat img = imread("orange1.jpg",IMREAD_COLOR);
+		imshow("img", img);
+		Histo::showHisto(img, "eredeti_histo", 1);
+
+		vector<Mat> chs;
+		Mat hsv;
+		cvtColor(img, hsv, COLOR_BGR2HSV);
+		split(hsv, chs);
+		equalizeHist(chs[0], chs[0]);
+		Mat res;
+		merge(chs, res);
+		cvtColor(res, res, COLOR_Lab2BGR);
+		imshow("res", res);
+		Histo::showHisto(res, "utana_histo", 1);
+
+		*/
+		/*
+			VideoCapture cap("sas.avi");
+
+			if (!cap.isOpened()) {
+				cout << "nincs ott a fajl";
+				exit(-1);
+			}
+
+			Mat img, gray, mask, dest;
+			while (waitKey(25) != 'q') {
+				cap >> img;
+				if (img.empty()) {
+					break;
+				}
+				cvtColor(img, gray, COLOR_BGR2GRAY);
+				inRange(gray, 100, 155, mask);
+				medianBlur(mask, mask, 5);
+				dest = img.clone();
+				dest.setTo(Scalar(0, 0, 0), mask);
+				imshow("sas", dest);
+			}
+		*/
+
+		//6.ora?
+	/*
+	Mat img = imread("scanned3.png", IMREAD_GRAYSCALE);
+	Mat dest;
+	int th = find_th(img);
+	if (th == -1) {
+		cout << "gatya" << endl;
+	}
+	else {
+		threshold(img, dest, th, 255, THRESH_BINARY);
+		imshow("dest", dest);
+		waitKey();
 	}
 
 	*/
 
-	Mat img = imread("orange1.jpg",IMREAD_COLOR);
-	imshow("img", img);
-	Histo::showHisto(img, "eredeti_histo", 1);
+	/*
+		Mat img = imread("zh.jpg", IMREAD_GRAYSCALE);
+		imshow("img", img);
+		int r = 1, c = 1;
+		createTrackbar("sugar", "img", &r, 100);
+		createTrackbar("r", "img", &c, 100);
 
-	vector<Mat> chs;
-	Mat hsv;
-	cvtColor(img, hsv, COLOR_BGR2HSV);
-	split(lab, chs);
-	equalizeHist(chs[0], chs[0]);
-	Mat res;
-	merge(chs, res);
-	cvtColor(res, res, COLOR_Lab2BGR);
-	imshow("res", res);
-	Histo::showHisto(res, "utana_histo", 1);
+		Mat dest;
+		while (waitKey(1) != 'q') {
+			int size = max(2 * r+1, 3);
+			adaptiveThreshold(img, dest, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, size, c - 50);
+			imshow("img",dest);
+		}
+		waitKey();
+	*/
+
+	/*
+	Mat img = imread("csillagkod.jpg", IMREAD_GRAYSCALE);
+	imshow("img", img);
+	Mat mask;
+
+	int r = 1;
+	createTrackbar("s", "img", &r, 100);
+
+	Mat dest;
+	while (waitKey(1) != 'q') {
+		int size = max(2 * r + 1, 3);
+
+		Mat se = getStructuringElement(MORPH_RECT, Size(5, 5));
+		morphologyEx(img, mask, MORPH_TOPHAT, se);
+		imshow("mask", mask);
+	}
+	*/
+	/*
+		Mat img = imread("dog.jpg", IMREAD_GRAYSCALE);
+		imshow("img", img);
+		Mat mask;
+
+		threshold(img, mask, 100, 255, THRESH_BINARY);
+		imshow("mask", mask);
+
+		int r = 1;
+		createTrackbar("s", "img", &r, 100);
+
+		Mat dest,dest2;
+		while (waitKey(1) != 'q') {
+			int size = max(2 * r + 1, 3);
+
+			Mat se = getStructuringElement(MORPH_ELLIPSE, Size(size,size));
+			erode(mask, dest, se);
+			dilate(dest, dest2, se);
+			imshow("erodalt", dest);
+			imshow("visszadilatalt", dest2);
+		}
+	*/
+
+
+	Mat img = imread("szitakoto.jpg", IMREAD_GRAYSCALE);
+	imshow("img", img);
+	Mat mask;
+
+	threshold(img, mask, 100, 255, THRESH_BINARY);
+
+	int r = 1;
+	createTrackbar("s", "img", &r, 100);
+
+	Mat dest, dest2;
+	while (waitKey(1) != 'q') {
+		int size = max(2 * r + 1, 3);
+		Mat mask2;
+		Mat se = getStructuringElement(MORPH_ELLIPSE, Size(9, 9));
+
+		erode(mask, dest, se, Point(-1, -1), 1, BORDER_CONSTANT, 0);
+		//dilate(mask2, mask, se, Point(-1, -1), 1, BORDER_CONSTANT, 0);
+
+		int x = mask.cols / 3;
+		Rect r(x, 0, mask.cols - x - 1, mask.rows);
+
+		cout << countNonZero(mask(r)) << endl;
+		imshow("mask", mask(r));
+
+	}
+
+
+
+
 
 	waitKey();
 	return 0;
 }
+
